@@ -13,6 +13,7 @@ const DeckWinrateCalculator = () => {
   const [showResults, setShowResults] = useState(false);
   const [actualBattles, setActualBattles] = useState('');
   const [actualWins, setActualWins] = useState('');
+  const [customBattles, setCustomBattles] = useState('');
 
   const advantageOptions = [
     { value: '80', label: '大有利（80%）' },
@@ -76,7 +77,7 @@ const DeckWinrateCalculator = () => {
       expectedWinrate += rate * winrate;
     });
 
-    // 各戦数での期待勝利数計算
+    // 各戦数での期待勝利数計算（1-10戦）
     const battleResults = [];
     for (let battles = 1; battles <= 10; battles++) {
       const expectedWins = battles * expectedWinrate;
@@ -85,6 +86,20 @@ const DeckWinrateCalculator = () => {
         expectedWins: expectedWins.toFixed(2),
         rounded: Math.round(expectedWins)
       });
+    }
+
+    // カスタム戦数での期待勝利数計算
+    let customBattleResult = null;
+    if (customBattles) {
+      const battles = parseFloat(customBattles);
+      if (battles > 0) {
+        const expectedWins = battles * expectedWinrate;
+        customBattleResult = {
+          battles,
+          expectedWins: expectedWins.toFixed(2),
+          rounded: Math.round(expectedWins)
+        };
+      }
     }
 
     // 実際の勝率計算
@@ -101,6 +116,7 @@ const DeckWinrateCalculator = () => {
       expectedWinrate: (expectedWinrate * 100).toFixed(2),
       matchups: allMatchups,
       battleResults,
+      customBattleResult,
       unknownRate,
       actualWinrate,
       actualBattles: actualBattles || null,
@@ -294,7 +310,46 @@ const DeckWinrateCalculator = () => {
 
             <div className="bg-white p-3 sm:p-4 rounded-lg">
               <h3 className="text-base sm:text-lg font-semibold mb-3 text-gray-800">戦数別期待勝利数</h3>
+              
+              {/* カスタム戦数入力 */}
+              <div className="mb-4 p-3 bg-gray-50 rounded-lg">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  任意の戦数で期待勝利数を計算
+                </label>
+                <div className="flex gap-2">
+                  <input
+                    type="number"
+                    value={customBattles}
+                    onChange={(e) => setCustomBattles(e.target.value)}
+                    className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-base"
+                    placeholder="戦数を入力"
+                    min="1"
+                  />
+                  <button
+                    onClick={calculateExpectedWinrate}
+                    className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 active:bg-blue-800 text-sm font-medium"
+                  >
+                    再計算
+                  </button>
+                </div>
+              </div>
+
+              {/* カスタム戦数の結果表示 */}
+              {results.customBattleResult && (
+                <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                  <div className="text-sm text-blue-700 mb-1">カスタム戦数での期待値</div>
+                  <div className="text-xl font-bold text-blue-600">
+                    {results.customBattleResult.battles}戦 → {results.customBattleResult.rounded}勝
+                  </div>
+                  <div className="text-xs text-blue-500 mt-1">
+                    期待値: {results.customBattleResult.expectedWins}勝
+                  </div>
+                </div>
+              )}
+
+              {/* 1-10戦の期待勝利数 */}
               <div className="space-y-1 sm:space-y-2">
+                <div className="text-sm text-gray-600 mb-2">1-10戦の期待勝利数</div>
                 {results.battleResults.slice(0, 8).map((result) => (
                   <div key={result.battles} className="flex justify-between items-center py-2 sm:py-1 border-b border-gray-100">
                     <span className="font-medium text-sm sm:text-base">{result.battles}戦</span>
