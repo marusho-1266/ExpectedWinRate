@@ -11,6 +11,8 @@ const DeckWinrateCalculator = () => {
 
   const [results, setResults] = useState(null);
   const [showResults, setShowResults] = useState(false);
+  const [actualBattles, setActualBattles] = useState('');
+  const [actualWins, setActualWins] = useState('');
 
   const advantageOptions = [
     { value: '80', label: '大有利（80%）' },
@@ -85,11 +87,24 @@ const DeckWinrateCalculator = () => {
       });
     }
 
+    // 実際の勝率計算
+    let actualWinrate = null;
+    if (actualBattles && actualWins) {
+      const battles = parseFloat(actualBattles);
+      const wins = parseFloat(actualWins);
+      if (battles > 0 && wins >= 0 && wins <= battles) {
+        actualWinrate = (wins / battles * 100).toFixed(2);
+      }
+    }
+
     setResults({
       expectedWinrate: (expectedWinrate * 100).toFixed(2),
       matchups: allMatchups,
       battleResults,
-      unknownRate
+      unknownRate,
+      actualWinrate,
+      actualBattles: actualBattles || null,
+      actualWins: actualWins || null
     });
     setShowResults(true);
   };
@@ -169,6 +184,39 @@ const DeckWinrateCalculator = () => {
           ))}
         </div>
 
+        {/* 実際の戦績入力 */}
+        <div className="bg-white p-3 sm:p-4 rounded border mb-4">
+          <h3 className="text-base sm:text-lg font-semibold mb-3 text-gray-800">実際の戦績（任意）</h3>
+          <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
+            <div className="flex-1">
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                戦数
+              </label>
+              <input
+                type="number"
+                value={actualBattles}
+                onChange={(e) => setActualBattles(e.target.value)}
+                className="w-full px-3 py-3 sm:py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-base"
+                placeholder="例: 10"
+                min="1"
+              />
+            </div>
+            <div className="flex-1">
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                勝利数
+              </label>
+              <input
+                type="number"
+                value={actualWins}
+                onChange={(e) => setActualWins(e.target.value)}
+                className="w-full px-3 py-3 sm:py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-base"
+                placeholder="例: 7"
+                min="0"
+              />
+            </div>
+          </div>
+        </div>
+
         <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 mt-6">
           <button
             onClick={addMatchup}
@@ -194,10 +242,42 @@ const DeckWinrateCalculator = () => {
           
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
             <div className="bg-white p-3 sm:p-4 rounded-lg">
-              <h3 className="text-base sm:text-lg font-semibold mb-3 text-gray-800">期待勝率</h3>
-              <div className="text-2xl sm:text-3xl font-bold text-blue-600 mb-4">
-                {results.expectedWinrate}%
+              <h3 className="text-base sm:text-lg font-semibold mb-3 text-gray-800">勝率比較</h3>
+              
+              <div className="mb-4">
+                <div className="text-sm text-gray-600 mb-1">期待勝率</div>
+                <div className="text-2xl sm:text-3xl font-bold text-blue-600">
+                  {results.expectedWinrate}%
+                </div>
               </div>
+
+              {results.actualWinrate && (
+                <div className="mb-4">
+                  <div className="text-sm text-gray-600 mb-1">実際の勝率</div>
+                  <div className="text-2xl sm:text-3xl font-bold text-green-600">
+                    {results.actualWinrate}%
+                  </div>
+                  <div className="text-xs text-gray-500 mt-1">
+                    {results.actualWins}勝 / {results.actualBattles}戦
+                  </div>
+                </div>
+              )}
+
+              {results.actualWinrate && (
+                <div className="mb-4 p-2 bg-gray-50 rounded">
+                  <div className="text-sm text-gray-600 mb-1">差</div>
+                  <div className={`text-lg font-bold ${
+                    parseFloat(results.actualWinrate) > parseFloat(results.expectedWinrate) 
+                      ? 'text-green-600' 
+                      : parseFloat(results.actualWinrate) < parseFloat(results.expectedWinrate)
+                      ? 'text-red-600'
+                      : 'text-gray-600'
+                  }`}>
+                    {parseFloat(results.actualWinrate) > parseFloat(results.expectedWinrate) ? '+' : ''}
+                    {(parseFloat(results.actualWinrate) - parseFloat(results.expectedWinrate)).toFixed(2)}%
+                  </div>
+                </div>
+              )}
               
               <h4 className="font-semibold mb-2 text-gray-700 text-sm sm:text-base">マッチアップ</h4>
               <div className="space-y-1 text-xs sm:text-sm">
