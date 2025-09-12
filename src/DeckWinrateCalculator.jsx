@@ -105,7 +105,7 @@ const DeckWinrateCalculator = () => {
       const battles = parseFloat(customBattles);
       const wins = parseFloat(customWins);
       if (battles > 0 && wins >= 0 && wins <= battles) {
-        const winrate = expectedWinrate / 100; // 期待勝率を小数に変換
+        const winrate = expectedWinrate; // 期待勝率は既に小数形式
         const probability = binomialProbability(battles, wins, winrate);
         probabilityResult = {
           battles,
@@ -255,26 +255,28 @@ const DeckWinrateCalculator = () => {
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   戦数と勝利数を入力して確率を計算
                 </label>
-                <div className="flex flex-col sm:flex-row gap-2">
-                  <input
-                    type="number"
-                    value={customBattles}
-                    onChange={(e) => setCustomBattles(e.target.value)}
-                    className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-base"
-                    placeholder="戦数"
-                    min="1"
-                  />
-                  <input
-                    type="number"
-                    value={customWins}
-                    onChange={(e) => setCustomWins(e.target.value)}
-                    className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-base"
-                    placeholder="勝利数"
-                    min="0"
-                  />
+                <div className="space-y-2">
+                  <div className="flex gap-2">
+                    <input
+                      type="number"
+                      value={customBattles}
+                      onChange={(e) => setCustomBattles(e.target.value)}
+                      className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-base"
+                      placeholder="戦数"
+                      min="1"
+                    />
+                    <input
+                      type="number"
+                      value={customWins}
+                      onChange={(e) => setCustomWins(e.target.value)}
+                      className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-base"
+                      placeholder="勝利数"
+                      min="0"
+                    />
+                  </div>
                   <button
                     onClick={calculateExpectedWinrate}
-                    className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 active:bg-blue-800 text-sm font-medium"
+                    className="w-full px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 active:bg-blue-800 text-sm font-medium"
                   >
                     計算
                   </button>
@@ -292,7 +294,7 @@ const DeckWinrateCalculator = () => {
                     {results.probabilityResult.probability}%
                   </div>
                   <div className="text-sm text-blue-600">
-                    期待勝率: {results.probabilityResult.expectedWinrate}%での計算結果
+                    期待勝率: {results.expectedWinrate}%での計算結果
                   </div>
                 </div>
               )}
