@@ -256,24 +256,22 @@ const DeckWinrateCalculator = () => {
                   戦数と勝利数を入力して確率を計算
                 </label>
                 <div className="space-y-2">
-                  <div className="flex gap-2">
-                    <input
-                      type="number"
-                      value={customBattles}
-                      onChange={(e) => setCustomBattles(e.target.value)}
-                      className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-base"
-                      placeholder="戦数"
-                      min="1"
-                    />
-                    <input
-                      type="number"
-                      value={customWins}
-                      onChange={(e) => setCustomWins(e.target.value)}
-                      className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-base"
-                      placeholder="勝利数"
-                      min="0"
-                    />
-                  </div>
+                  <input
+                    type="number"
+                    value={customBattles}
+                    onChange={(e) => setCustomBattles(e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-base"
+                    placeholder="戦数"
+                    min="1"
+                  />
+                  <input
+                    type="number"
+                    value={customWins}
+                    onChange={(e) => setCustomWins(e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-base"
+                    placeholder="勝利数"
+                    min="0"
+                  />
                   <button
                     onClick={calculateExpectedWinrate}
                     className="w-full px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 active:bg-blue-800 text-sm font-medium"
