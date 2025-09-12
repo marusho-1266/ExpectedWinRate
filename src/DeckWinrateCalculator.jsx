@@ -14,6 +14,29 @@ const DeckWinrateCalculator = () => {
   const [customBattles, setCustomBattles] = useState('');
   const [customWins, setCustomWins] = useState('');
 
+  // 階乗の計算
+  const factorial = (n) => {
+    if (n <= 1) return 1;
+    let result = 1;
+    for (let i = 2; i <= n; i++) {
+      result *= i;
+    }
+    return result;
+  };
+
+  // 組み合わせの計算 (nCr)
+  const combination = (n, r) => {
+    if (r > n || r < 0) return 0;
+    if (r === 0 || r === n) return 1;
+    return factorial(n) / (factorial(r) * factorial(n - r));
+  };
+
+  // 二項分布の確率計算
+  const binomialProbability = (n, k, p) => {
+    if (k > n || k < 0) return 0;
+    return combination(n, k) * Math.pow(p, k) * Math.pow(1 - p, n - k);
+  };
+
   const advantageOptions = [
     { value: '80', label: '大有利（80%）' },
     { value: '70', label: '有利（70%）' },
@@ -76,30 +99,19 @@ const DeckWinrateCalculator = () => {
       expectedWinrate += rate * winrate;
     });
 
-    // カスタム戦数での期待勝利数計算
-    let customBattleResult = null;
-    if (customBattles) {
+    // 戦数と勝利数での確率計算
+    let probabilityResult = null;
+    if (customBattles && customWins) {
       const battles = parseFloat(customBattles);
-      if (battles > 0) {
-        const expectedWins = battles * expectedWinrate;
-        customBattleResult = {
-          battles,
-          expectedWins: expectedWins.toFixed(2),
-          rounded: Math.round(expectedWins)
-        };
-      }
-    }
-
-    // カスタム勝利数での期待戦数計算
-    let customWinResult = null;
-    if (customWins) {
       const wins = parseFloat(customWins);
-      if (wins > 0 && expectedWinrate > 0) {
-        const expectedBattles = wins / expectedWinrate;
-        customWinResult = {
+      if (battles > 0 && wins >= 0 && wins <= battles) {
+        const winrate = expectedWinrate / 100; // 期待勝率を小数に変換
+        const probability = binomialProbability(battles, wins, winrate);
+        probabilityResult = {
+          battles,
           wins,
-          expectedBattles: expectedBattles.toFixed(2),
-          rounded: Math.round(expectedBattles)
+          probability: (probability * 100).toFixed(2),
+          expectedWinrate: expectedWinrate
         };
       }
     }
@@ -107,8 +119,7 @@ const DeckWinrateCalculator = () => {
     setResults({
       expectedWinrate: (expectedWinrate * 100).toFixed(2),
       matchups: allMatchups,
-      customBattleResult,
-      customWinResult,
+      probabilityResult,
       unknownRate
     });
     setShowResults(true);
@@ -237,79 +248,59 @@ const DeckWinrateCalculator = () => {
             </div>
 
             <div className="bg-white p-3 sm:p-4 rounded-lg">
-              <h3 className="text-base sm:text-lg font-semibold mb-3 text-gray-800">戦数別期待勝利数</h3>
+              <h3 className="text-base sm:text-lg font-semibold mb-3 text-gray-800">戦数別期待勝利率</h3>
               
-              {/* 戦数入力 */}
+              {/* 戦数と勝利数入力 */}
               <div className="mb-4 p-3 bg-gray-50 rounded-lg">
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  戦数で期待勝利数を計算
+                  戦数と勝利数を入力して確率を計算
                 </label>
-                <div className="flex gap-2">
+                <div className="flex flex-col sm:flex-row gap-2">
                   <input
                     type="number"
                     value={customBattles}
                     onChange={(e) => setCustomBattles(e.target.value)}
                     className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-base"
-                    placeholder="戦数を入力"
+                    placeholder="戦数"
                     min="1"
                   />
-                  <button
-                    onClick={calculateExpectedWinrate}
-                    className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 active:bg-blue-800 text-sm font-medium"
-                  >
-                    再計算
-                  </button>
-                </div>
-              </div>
-
-              {/* 勝利数入力 */}
-              <div className="mb-4 p-3 bg-gray-50 rounded-lg">
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  勝利数で期待戦数を計算
-                </label>
-                <div className="flex gap-2">
                   <input
                     type="number"
                     value={customWins}
                     onChange={(e) => setCustomWins(e.target.value)}
                     className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-base"
-                    placeholder="勝利数を入力"
-                    min="1"
+                    placeholder="勝利数"
+                    min="0"
                   />
                   <button
                     onClick={calculateExpectedWinrate}
                     className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 active:bg-blue-800 text-sm font-medium"
                   >
-                    再計算
+                    計算
                   </button>
                 </div>
               </div>
 
-              {/* 戦数での期待勝利数結果表示 */}
-              {results.customBattleResult && (
-                <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-                  <div className="text-sm text-blue-700 mb-1">戦数での期待値</div>
-                  <div className="text-xl font-bold text-blue-600">
-                    {results.customBattleResult.battles}戦 → {results.customBattleResult.rounded}勝
+              {/* 確率結果表示 */}
+              {results.probabilityResult && (
+                <div className="mb-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                  <div className="text-sm text-blue-700 mb-2">確率計算結果</div>
+                  <div className="text-2xl font-bold text-blue-600 mb-2">
+                    {results.probabilityResult.battles}戦{results.probabilityResult.wins}勝の確率
                   </div>
-                  <div className="text-xs text-blue-500 mt-1">
-                    期待値: {results.customBattleResult.expectedWins}勝
+                  <div className="text-3xl font-bold text-blue-800 mb-2">
+                    {results.probabilityResult.probability}%
+                  </div>
+                  <div className="text-sm text-blue-600">
+                    期待勝率: {results.probabilityResult.expectedWinrate}%での計算結果
                   </div>
                 </div>
               )}
 
-              {/* 勝利数での期待戦数結果表示 */}
-              {results.customWinResult && (
-                <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded-lg">
-                  <div className="text-sm text-green-700 mb-1">勝利数での期待値</div>
-                  <div className="text-xl font-bold text-green-600">
-                    {results.customWinResult.wins}勝 → {results.customWinResult.rounded}戦
-                  </div>
-                  <div className="text-xs text-green-500 mt-1">
-                    期待値: {results.customWinResult.expectedBattles}戦
-                  </div>
-                </div>
-              )}
+              {/* 説明テキスト */}
+              <div className="text-xs text-gray-500 mt-3">
+                ※ 二項分布を使用して、指定した戦数と勝利数が発生する確率を計算します。
+              </div>
             </div>
           </div>
 
