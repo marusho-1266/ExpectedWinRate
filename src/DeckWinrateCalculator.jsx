@@ -13,7 +13,6 @@ const DeckWinrateCalculator = () => {
   const [showResults, setShowResults] = useState(false);
   const [customBattles, setCustomBattles] = useState('');
   const [customWins, setCustomWins] = useState('');
-  const [probabilityMode, setProbabilityMode] = useState('cumulative'); // 'exact' or 'cumulative'
 
   // 階乗の計算
   const factorial = (n) => {
@@ -32,16 +31,16 @@ const DeckWinrateCalculator = () => {
     return factorial(n) / (factorial(r) * factorial(n - r));
   };
 
-  // 二項分布の確率計算
-  const binomialProbability = (n, k, p) => {
-    if (k > n || k < 0) return 0;
-    return combination(n, k) * Math.pow(p, k) * Math.pow(1 - p, n - k);
-  };
-
   // 累積確率計算（k戦以上勝つ確率）
   const cumulativeProbability = (n, k, p) => {
     if (k > n || k < 0) return 0;
     if (k === 0) return 1; // 0戦以上勝つ確率は100%
+    
+    // 二項分布の確率計算（内部関数）
+    const binomialProbability = (n, k, p) => {
+      if (k > n || k < 0) return 0;
+      return combination(n, k) * Math.pow(p, k) * Math.pow(1 - p, n - k);
+    };
     
     let cumulative = 0;
     for (let i = k; i <= n; i++) {
@@ -112,25 +111,19 @@ const DeckWinrateCalculator = () => {
       expectedWinrate += rate * winrate;
     });
 
-    // 戦数と勝利数での確率計算
+    // 戦数と勝利数での確率計算（X戦以上勝つ確率）
     let probabilityResult = null;
     if (customBattles && customWins) {
       const battles = parseFloat(customBattles);
       const wins = parseFloat(customWins);
       if (battles > 0 && wins >= 0 && wins <= battles) {
         const winrate = expectedWinrate; // 期待勝率は既に小数形式
-        let probability;
-        if (probabilityMode === 'exact') {
-          probability = binomialProbability(battles, wins, winrate);
-        } else {
-          probability = cumulativeProbability(battles, wins, winrate);
-        }
+        const probability = cumulativeProbability(battles, wins, winrate);
         probabilityResult = {
           battles,
           wins,
           probability: (probability * 100).toFixed(2),
-          expectedWinrate: expectedWinrate,
-          mode: probabilityMode
+          expectedWinrate: expectedWinrate
         };
       }
     }
@@ -292,37 +285,6 @@ const DeckWinrateCalculator = () => {
                     min="0"
                   />
                   
-                  {/* 確率計算モード選択 */}
-                  <div className="space-y-2">
-                    <label className="block text-sm font-medium text-gray-700">
-                      計算モード
-                    </label>
-                    <div className="space-y-1">
-                      <label className="flex items-center">
-                        <input
-                          type="radio"
-                          name="probabilityMode"
-                          value="cumulative"
-                          checked={probabilityMode === 'cumulative'}
-                          onChange={(e) => setProbabilityMode(e.target.value)}
-                          className="mr-2"
-                        />
-                        <span className="text-sm">X戦以上勝つ確率</span>
-                      </label>
-                      <label className="flex items-center">
-                        <input
-                          type="radio"
-                          name="probabilityMode"
-                          value="exact"
-                          checked={probabilityMode === 'exact'}
-                          onChange={(e) => setProbabilityMode(e.target.value)}
-                          className="mr-2"
-                        />
-                        <span className="text-sm">ちょうどX戦勝つ確率</span>
-                      </label>
-                    </div>
-                  </div>
-                  
                   <button
                     onClick={calculateExpectedWinrate}
                     className="w-full px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 active:bg-blue-800 text-sm font-medium"
@@ -337,10 +299,7 @@ const DeckWinrateCalculator = () => {
                 <div className="mb-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
                   <div className="text-sm text-blue-700 mb-2">確率計算結果</div>
                   <div className="text-2xl font-bold text-blue-600 mb-2">
-                    {results.probabilityResult.mode === 'exact' 
-                      ? `${results.probabilityResult.battles}戦ちょうど${results.probabilityResult.wins}勝の確率`
-                      : `${results.probabilityResult.battles}戦${results.probabilityResult.wins}勝以上の確率`
-                    }
+                    {results.probabilityResult.battles}戦{results.probabilityResult.wins}勝以上の確率
                   </div>
                   <div className="text-3xl font-bold text-blue-800 mb-2">
                     {results.probabilityResult.probability}%
@@ -353,9 +312,7 @@ const DeckWinrateCalculator = () => {
 
               {/* 説明テキスト */}
               <div className="text-xs text-gray-500 mt-3">
-                ※ 二項分布を使用して確率を計算します。<br/>
-                「ちょうどX戦勝つ確率」：指定した勝利数でちょうど勝つ確率<br/>
-                「X戦以上勝つ確率」：指定した勝利数以上で勝つ確率
+                ※ 二項分布を使用して、指定した勝利数以上で勝つ確率を計算します。
               </div>
             </div>
           </div>
