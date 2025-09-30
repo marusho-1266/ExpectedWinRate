@@ -13,7 +13,7 @@ const DeckWinrateCalculator = () => {
   const [showResults, setShowResults] = useState(false);
   const [customBattles, setCustomBattles] = useState('');
   const [customWins, setCustomWins] = useState('');
-  const [probabilityMode, setProbabilityMode] = useState('exact'); // 'exact' or 'cumulative'
+  const [probabilityMode, setProbabilityMode] = useState('cumulative'); // 'exact' or 'cumulative'
 
   // 階乗の計算
   const factorial = (n) => {
@@ -302,23 +302,23 @@ const DeckWinrateCalculator = () => {
                         <input
                           type="radio"
                           name="probabilityMode"
-                          value="exact"
-                          checked={probabilityMode === 'exact'}
-                          onChange={(e) => setProbabilityMode(e.target.value)}
-                          className="mr-2"
-                        />
-                        <span className="text-sm">ちょうどX戦勝つ確率</span>
-                      </label>
-                      <label className="flex items-center">
-                        <input
-                          type="radio"
-                          name="probabilityMode"
                           value="cumulative"
                           checked={probabilityMode === 'cumulative'}
                           onChange={(e) => setProbabilityMode(e.target.value)}
                           className="mr-2"
                         />
                         <span className="text-sm">X戦以上勝つ確率</span>
+                      </label>
+                      <label className="flex items-center">
+                        <input
+                          type="radio"
+                          name="probabilityMode"
+                          value="exact"
+                          checked={probabilityMode === 'exact'}
+                          onChange={(e) => setProbabilityMode(e.target.value)}
+                          className="mr-2"
+                        />
+                        <span className="text-sm">ちょうどX戦勝つ確率</span>
                       </label>
                     </div>
                   </div>
